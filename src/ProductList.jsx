@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import './ProductList.css'
 import CartItem from './CartItem';
 import { addItem } from './CartSlice';
-import { useDispatch } from 'react-redux'; // Import useDispatch from react-redux to dispatch actions
+import { useDispatch, useSelector } from 'react-redux'; // Import useDispatch from react-redux to dispatch actions
 
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
     const [addedToCart, setAddedToCart] = useState({});
     const dispatch = useDispatch(); 
+    const cart = useSelector(state => state.cart.items);
 
     const plantsArray = [
         {
@@ -267,7 +268,21 @@ function ProductList({ onHomeClick }) {
         }));
     };
 
+    const setCartQuantityClass = () => {
+        let className = '';
+        if (calculateTotalQuantity() >= 10 && calculateTotalQuantity() < 100) {
+            className = 'two_digits'; // Add class for two-digit quantity
+        }
+        else if (calculateTotalQuantity() >= 100) {
+            className = 'three_digits'; // Add class for three-digit quantity
+        }
 
+        return className;
+    }
+
+    const calculateTotalQuantity = () => {
+        return cart ? cart.reduce((total, item) => total + item.quantity, 0) : 0;
+    };
 
     return (
         <div>
@@ -293,6 +308,7 @@ function ProductList({ onHomeClick }) {
                                     <circle cx="80" cy="216" r="12"></circle><circle cx="184" cy="216" r="12"></circle>
                                     <path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" id="mainIconPathAttribute"></path>
                                 </svg>
+                                <span className={`cart_quantity_count ${setCartQuantityClass()}`}>{calculateTotalQuantity()}</span> {/* Display the count of items added to cart */}
                             </h1>
                         </a>
                     </div>
@@ -318,10 +334,11 @@ function ProductList({ onHomeClick }) {
                             <div className="product-description">{plant.description}</div> {/* Display plant description */}
                             <div className="product-cost">{plant.cost}</div> {/* Display plant cost */}
                             <button
-                                className="product-button"
+                                className={`product-button ${cart.some(item => item.name === plant.name) && 'added-to-cart'}`}
+                                disabled={cart.some(item => item.name === plant.name)} // Disable button if plant is already added to car
                                 onClick={() => handleAddToCart(plant)} // Handle adding plant to cart
                             >
-                                Add to Cart
+                                { cart.some(item => item.name === plant.name) ? 'Added to Cart' : 'Add to Cart' } {/* Change button text based on whether the plant is added to cart */}
                             </button>
                             </div>
                         ))}
